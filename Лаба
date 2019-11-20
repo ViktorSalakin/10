@@ -1,0 +1,97 @@
+
+#pragma warning (disable : 4996)
+#include <stdio.h>
+#include <malloc.h>
+#include <string.h>
+#define TRUE 1
+#define FALSE 0
+
+int main(void)
+{
+	FILE *in, *out;
+	char **strlist, *str, *tmp, c;
+	int strcnt, strlen, flag, i, j;
+
+	if ((in = fopen("infile.txt", "r")) == NULL || (out = fopen("outfile.txt", "w")) == NULL)
+	{
+		printf("File can`t open\n");
+		getchar();
+		return 0;
+	}
+
+	strlist = NULL;
+	str = NULL;
+	tmp = NULL;
+	strcnt = 0;
+	strlen = 0;
+	flag = FALSE;
+
+	do {
+		c = fgetc(in);
+
+		if (c == '\n' || c == EOF)
+		{
+			if (flag == FALSE)
+			{
+				free(str);
+				continue;
+			}
+
+			str = (char*)realloc(str, (strlen + 2) * sizeof(char));
+			str[strlen++] = '\n';
+			str[strlen] = '\0';
+
+			strlist = (char**)realloc(strlist, (strcnt + 1) * sizeof(char*));
+			strlist[strcnt++] = str;
+			str = NULL;
+			strlen = 0;
+			flag = FALSE;
+		}
+		else
+		{
+			if ((c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z') && flag == FALSE)
+				flag = TRUE;
+			else if (flag == FALSE)
+				continue;
+
+			str = (char*)realloc(str, (strlen + 1) * sizeof(char));
+			str[strlen++] = c;
+		}
+
+	} while (c != EOF);
+	
+	fclose(in);
+
+	// цикл сортировки
+	for (i = 0; i < strcnt; i++)
+	{
+		flag = TRUE;
+
+		for (j = 0; j < strcnt - i - 1; j++)
+		{
+			if (strcmp(strlist[j], strlist[j + 1]) > 0)
+			{
+				flag = FALSE;
+
+				tmp = strlist[j];
+				strlist[j] = strlist[j + 1];
+				strlist[j + 1] = tmp;
+			}
+		}
+
+		if (flag == TRUE)
+			break;
+	}
+
+	for (i = 0; i < strcnt; i++)
+	{
+		fputs(strlist[i], out);
+		free(strlist[i]);
+	}
+
+	fclose(out);
+	free(strlist);
+	printf("Program complete\n");
+	getchar();
+	return 0;
+}
